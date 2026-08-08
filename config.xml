@@ -1,0 +1,91 @@
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<widget
+    xmlns="http://www.w3.org/ns/widgets"
+    xmlns:tizen="http://tizen.org/ns/widgets"
+    id="http://torrentplayer.local"
+    version="0.1.0">
+
+    <!-- ============================= -->
+    <!-- Основная информация            -->
+    <!-- ============================= -->
+
+    <name>TorrentPlayer</name>
+
+    <description>
+        Modern video player for Samsung Tizen TV
+    </description>
+
+    <content src="src/index.html" />
+
+    <!-- Пока используем стандартную иконку.
+         Позже добавим собственную. -->
+
+    <icon src="assets/icon.png" />
+
+
+    <!-- ============================= -->
+    <!-- Tizen Application              -->
+    <!-- ============================= -->
+
+    <tizen:application
+        id="TorrentPlayer.Tizen"
+        package="TorrentPlayer"
+        required_version="8.0" />
+
+
+    <!-- ============================= -->
+    <!-- Network                        -->
+    <!-- ============================= -->
+
+    <!-- Разрешаем сетевые ресурсы -->
+
+    <access
+        origin="*"
+        subdomains="true" />
+
+    <!-- Доступ приложения к Internet -->
+
+    <tizen:privilege
+        name="http://tizen.org/privilege/internet" />
+
+
+    <!-- ============================= -->
+    <!-- TV input                       -->
+    <!-- ============================= -->
+
+    <tizen:privilege
+        name="http://tizen.org/privilege/tv.inputdevice" />
+
+
+    <!-- ============================= -->
+    <!-- Application settings           -->
+    <!-- ============================= -->
+
+    <tizen:setting
+        pointing-device-support="disable" />
+
+
+    <!-- ============================= -->
+    <!-- Samsung TV metadata            -->
+    <!-- ============================= -->
+
+    <!-- Приложение может использовать
+         сетевое соединение. -->
+
+    <tizen:metadata
+        key="http://samsung.com/tv/metadata/use.network"
+        value="true" />
+
+
+    <!-- ============================= -->
+    <!-- Default preferences            -->
+    <!-- ============================= -->
+
+    <preference
+        name="app.version"
+        value="0.1.0" />
+
+</widget>
+```
