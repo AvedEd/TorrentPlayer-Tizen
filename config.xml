@@ -7,85 +7,45 @@
     id="http://torrentplayer.local"
     version="0.1.0">
 
-    <!-- ============================= -->
-    <!-- Основная информация            -->
-    <!-- ============================= -->
-
+    <!-- Название приложения -->
     <name>TorrentPlayer</name>
 
     <description>
-        Modern video player for Samsung Tizen TV
+        TorrentPlayer - video player for Samsung Smart TV
     </description>
 
+    <!-- Точка входа -->
     <content src="src/index.html" />
 
-    <!-- Пока используем стандартную иконку.
-         Позже добавим собственную. -->
-
+    <!-- Иконка будет добавлена перед первой сборкой -->
     <icon src="assets/icon.png" />
 
 
-    <!-- ============================= -->
-    <!-- Tizen Application              -->
-    <!-- ============================= -->
-
+    <!-- Tizen application -->
     <tizen:application
         id="TorrentPlayer.Tizen"
-        package="TorrentPlayer"
+        package="TrntPlyr"
         required_version="8.0" />
 
 
-    <!-- ============================= -->
-    <!-- Network                        -->
-    <!-- ============================= -->
-
-    <!-- Разрешаем сетевые ресурсы -->
-
-    <access
-        origin="*"
-        subdomains="true" />
-
-    <!-- Доступ приложения к Internet -->
-
+    <!-- Интернет -->
     <tizen:privilege
         name="http://tizen.org/privilege/internet" />
 
-
-    <!-- ============================= -->
-    <!-- TV input                       -->
-    <!-- ============================= -->
-
+    <!-- Управление TV input -->
     <tizen:privilege
         name="http://tizen.org/privilege/tv.inputdevice" />
 
 
-    <!-- ============================= -->
-    <!-- Application settings           -->
-    <!-- ============================= -->
+    <!-- Разрешаем сетевые подключения -->
+    <access
+        origin="*"
+        subdomains="true" />
 
+
+    <!-- Приложение работает без мыши -->
     <tizen:setting
         pointing-device-support="disable" />
-
-
-    <!-- ============================= -->
-    <!-- Samsung TV metadata            -->
-    <!-- ============================= -->
-
-    <!-- Приложение может использовать
-         сетевое соединение. -->
-
-    <tizen:metadata
-        key="http://samsung.com/tv/metadata/use.network"
-        value="true" />
-
-
-    <!-- ============================= -->
-    <!-- Default preferences            -->
-    <!-- ============================= -->
-
-    <preference
-        name="app.version"
-        value="0.1.0" />
 
 </widget>
 ```
