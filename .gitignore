@@ -1,0 +1,28 @@
+# Tizen Studio
+.tizen/
+.metadata/
+.settings/
+bin/
+build/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Certificates
+*.p12
+*.pem
+*.cer
+*.key
+
+# Local configuration
+local.config.js
+private.config.js
+
+# Logs
+*.log
