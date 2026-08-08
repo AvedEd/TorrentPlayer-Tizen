@@ -1,68 +1,66 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
         name="viewport"
-        content="width=1920,
-                 height=1080,
+        content="width=device-width,
                  initial-scale=1.0,
                  maximum-scale=1.0,
-                 user-scalable=no">
+                 user-scalable=no"
+    >
 
     <title>TorrentPlayer</title>
 
-    <link rel="stylesheet" href="css/player.css">
 
-    <script src="$WEBAPIS/webapis/webapis.js"></script>
+    <!-- ========================= -->
+    <!-- Основной стиль             -->
+    <!-- ========================= -->
+
+    <link
+        rel="stylesheet"
+        href="css/player.css"
+    >
+
+
 </head>
+
 
 <body>
 
-<div id="app">
 
-    <!-- ========================= -->
-    <!-- HOME SCREEN               -->
-    <!-- ========================= -->
+    <!-- ================================================= -->
+    <!-- HOME                                               -->
+    <!-- ================================================= -->
 
-    <main id="homeScreen" class="screen">
+    <section
+        id="homeScreen"
+        class="screen home-screen"
+    >
 
-        <header class="header">
+        <div class="home-container">
+
 
             <div class="logo">
 
-                <span class="logo-mark"></span>
+                <div class="logo-icon">
+                    ▶
+                </div>
 
-                <span class="logo-text">
+                <div class="logo-text">
                     TorrentPlayer
-                </span>
+                </div>
 
             </div>
 
-            <div class="version">
-                v0.1.0
+
+            <div class="subtitle">
+                Плеер для Samsung Smart TV
             </div>
-
-        </header>
-
-
-        <section class="hero">
-
-            <div class="eyebrow">
-                SAMSUNG SMART TV
-            </div>
-
-            <h1>
-                Смотреть<br>
-                без лишнего
-            </h1>
-
-            <p>
-                Воспроизводите фильмы через TorServe
-                прямо на телевизоре.
-            </p>
 
 
             <div class="url-container">
@@ -70,196 +68,273 @@
                 <input
                     id="streamUrl"
                     type="text"
-                    placeholder="URL потока TorServe"
-                    tabindex="0">
+                    placeholder="URL видеопотока"
+                    autocomplete="off"
+                >
+
 
                 <button
                     id="playButton"
-                    class="primary-button"
-                    tabindex="0">
-
+                    type="button"
+                >
                     ▶ Воспроизвести
-
                 </button>
 
             </div>
 
 
-            <div class="remote-hint">
+            <div class="hint">
 
-                <span>ENTER</span>
-                выбрать
-
-                <span>← →</span>
-                перемотка
-
-                <span>BACK</span>
-                назад
+                Введите адрес видеопотока
+                и нажмите OK
 
             </div>
 
-        </section>
 
+            <button
+                id="updateButton"
+                type="button"
+                class="secondary-button"
+            >
+                Проверить обновления
+            </button>
 
-        <footer class="footer">
-
-            <span>
-                TorServe
-            </span>
-
-            <span class="separator">
-                •
-            </span>
-
-            <span>
-                Samsung AVPlay
-            </span>
-
-        </footer>
-
-    </main>
-
-
-    <!-- ========================= -->
-    <!-- PLAYER                    -->
-    <!-- ========================= -->
-
-    <main id="playerScreen" class="screen player-screen hidden">
-
-        <div id="videoSurface"></div>
-
-
-        <div
-            id="loading"
-            class="overlay hidden">
-
-            <div class="loader"></div>
-
-            <div id="loadingText">
-                Подключение...
-            </div>
 
         </div>
 
+    </section>
+
+
+
+    <!-- ================================================= -->
+    <!-- PLAYER                                             -->
+    <!-- ================================================= -->
+
+    <section
+        id="playerScreen"
+        class="screen player-screen hidden"
+    >
+
+
+        <!-- Видео выводится AVPlay -->
+
+        <div
+            id="videoSurface"
+            class="video-surface"
+        >
+        </div>
+
+
+        <!-- =============================== -->
+        <!-- HUD                             -->
+        <!-- =============================== -->
 
         <div
             id="playerHud"
-            class="player-hud hidden">
-
-            <div class="player-title">
-
-                <span id="movieTitle">
-                    TorrentPlayer
-                </span>
-
-                <span id="quality">
-                    READY
-                </span>
-
-            </div>
+            class="player-hud hidden"
+        >
 
 
-            <div class="progress-container">
+            <div class="top-bar">
 
                 <div
-                    id="progress"
-                    class="progress">
+                    id="playerTitle"
+                    class="player-title"
+                >
+                    TorrentPlayer
+                </div>
+
+
+                <div
+                    id="bufferStatus"
+                    class="buffer-status"
+                >
                 </div>
 
             </div>
 
 
-            <div class="time-row">
 
-                <span id="currentTime">
-                    00:00
-                </span>
+            <div class="bottom-panel">
 
-                <span id="bufferStatus">
-                    Готово
-                </span>
 
-                <span id="duration">
-                    00:00
-                </span>
+                <div class="progress-container">
+
+                    <div
+                        id="progress"
+                        class="progress"
+                    >
+                    </div>
+
+                </div>
+
+
+                <div class="time-row">
+
+
+                    <span
+                        id="currentTime"
+                    >
+                        00:00
+                    </span>
+
+
+                    <span
+                        id="duration"
+                    >
+                        00:00
+                    </span>
+
+
+                </div>
+
+
+                <div class="controls">
+
+
+                    <button
+                        id="rewindButton"
+                        type="button"
+                    >
+                        ↶ 10
+                    </button>
+
+
+                    <button
+                        id="playPauseButton"
+                        type="button"
+                    >
+                        ▶
+                    </button>
+
+
+                    <button
+                        id="forwardButton"
+                        type="button"
+                    >
+                        10 ↷
+                    </button>
+
+
+                    <button
+                        id="muteButton"
+                        type="button"
+                    >
+                        🔊
+                    </button>
+
+
+                </div>
+
 
             </div>
 
 
-            <div class="player-controls">
+        </div>
 
-                <button
-                    id="rewindButton"
-                    tabindex="0">
-                    −10
-                </button>
 
-                <button
-                    id="playPauseButton"
-                    class="play-button"
-                    tabindex="0">
-                    ❚❚
-                </button>
+    </section>
 
-                <button
-                    id="forwardButton"
-                    tabindex="0">
-                    +10
-                </button>
 
-                <button
-                    id="muteButton"
-                    tabindex="0">
-                    🔊
-                </button>
 
+    <!-- ================================================= -->
+    <!-- SETTINGS                                          -->
+    <!-- ================================================= -->
+
+    <section
+        id="settingsScreen"
+        class="screen settings-screen hidden"
+    >
+
+        <div class="settings-container">
+
+            <h1>
+                Настройки
+            </h1>
+
+
+            <button
+                id="settingsBackButton"
+                type="button"
+            >
+                ← Назад
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ================================================= -->
+    <!-- LOADING                                           -->
+    <!-- ================================================= -->
+
+    <div
+        id="loading"
+        class="overlay hidden"
+    >
+
+        <div class="loading-box">
+
+            <div class="spinner">
+            </div>
+
+
+            <div
+                id="loadingText"
+                class="loading-text"
+            >
+                Загрузка...
             </div>
 
         </div>
 
-    </main>
+    </div>
 
 
-    <!-- ========================= -->
-    <!-- ERROR                     -->
-    <!-- ========================= -->
+
+    <!-- ================================================= -->
+    <!-- ERROR                                             -->
+    <!-- ================================================= -->
 
     <div
         id="errorDialog"
-        class="dialog hidden">
+        class="overlay hidden"
+    >
 
-        <div class="dialog-card">
-
-            <div class="error-icon">
-                !
-            </div>
+        <div class="dialog">
 
             <h2>
-                Не удалось воспроизвести
+                Ошибка
             </h2>
 
-            <p id="errorMessage">
-                Неизвестная ошибка
-            </p>
+
+            <div
+                id="errorMessage"
+                class="error-message"
+            >
+            </div>
+
 
             <div class="dialog-buttons">
 
+
                 <button
                     id="retryButton"
-                    class="primary-button"
-                    tabindex="0">
-
+                    type="button"
+                >
                     Повторить
-
                 </button>
+
 
                 <button
                     id="backButton"
-                    tabindex="0">
-
+                    type="button"
+                >
                     Назад
-
                 </button>
+
 
             </div>
 
@@ -268,111 +343,59 @@
     </div>
 
 
-    <!-- ========================= -->
-    <!-- SETTINGS                  -->
-    <!-- ========================= -->
 
-    <main
-        id="settingsScreen"
-        class="screen settings-screen hidden">
+    <!-- ================================================= -->
+    <!-- Tizen Web API                                     -->
+    <!-- ================================================= -->
 
-        <header class="header">
-
-            <div class="logo">
-
-                <span class="logo-mark"></span>
-
-                <span class="logo-text">
-                    Настройки
-                </span>
-
-            </div>
-
-        </header>
+    <script
+        src="$WEBAPIS/webapis/webapis.js"
+    >
+    </script>
 
 
-        <section class="settings">
 
-            <div class="setting-item">
+    <!-- ================================================= -->
+    <!-- TorrentPlayer modules                             -->
+    <!-- ================================================= -->
 
-                <div>
-
-                    <h3>
-                        TorServe
-                    </h3>
-
-                    <p>
-                        Адрес сервера потоков
-                    </p>
-
-                </div>
-
-                <span id="torserveStatus">
-                    Не настроен
-                </span>
-
-            </div>
+    <script
+        src="js/storage.js"
+    >
+    </script>
 
 
-            <div class="setting-item">
-
-                <div>
-
-                    <h3>
-                        Обновление
-                    </h3>
-
-                    <p>
-                        Проверить новую версию
-                    </p>
-
-                </div>
-
-                <button
-                    id="updateButton"
-                    tabindex="0">
-
-                    Проверить
-
-                </button>
-
-            </div>
+    <script
+        src="js/avplay.js"
+    >
+    </script>
 
 
-            <div class="setting-item">
-
-                <div>
-
-                    <h3>
-                        Версия
-                    </h3>
-
-                    <p>
-                        Текущая версия приложения
-                    </p>
-
-                </div>
-
-                <span>
-                    v0.1.0
-                </span>
-
-            </div>
-
-        </section>
-
-    </main>
-
-</div>
+    <script
+        src="js/tracks.js"
+    >
+    </script>
 
 
-<script src="js/storage.js"></script>
-<script src="js/avplay.js"></script>
-<script src="js/remote.js"></script>
-<script src="js/tracks.js"></script>
-<script src="js/updater.js"></script>
-<script src="js/app.js"></script>
+    <script
+        src="js/remote.js"
+    >
+    </script>
+
+
+    <script
+        src="js/updater.js"
+    >
+    </script>
+
+
+    <script
+        src="js/app.js"
+    >
+    </script>
+
 
 </body>
 
 </html>
+```
