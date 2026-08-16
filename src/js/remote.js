@@ -1,438 +1,77 @@
 (function () {
     "use strict";
-
-    /*
-     * TorrentPlayer Remote Controller
-     *
-     * Управление Samsung TV Remote.
-     *
-     * Основная задача этого модуля —
-     * превратить физический пульт телевизора
-     * в полноценный контроллер приложения с поддержкой
-     * горизонтального и вертикального мега-меню.
-     */
-
-
     var Remote = {
-
-        /*
-         * Коды клавиш Samsung / Tizen
-         */
-
-        KEY: {
-
-            LEFT: 37,
-            UP: 38,
-            RIGHT: 39,
-            DOWN: 40,
-
-            ENTER: 13,
-
-            BACK: 10009,
-
-            RETURN: 10009,
-
-            PLAY: 415,
-
-            PAUSE: 19,
-
-            PLAY_PAUSE: 10252,
-
-            STOP: 413,
-
-            REWIND: 412,
-
-            FAST_FORWARD: 417,
-
-            INFO: 457,
-
-            EXIT: 10182,
-
-            RED: 403,
-
-            GREEN: 404,
-
-            YELLOW: 405,
-
-            BLUE: 406,
-
-            CHANNEL_UP: 427,
-
-            CHANNEL_DOWN: 428,
-
-            VOLUME_UP: 447,
-
-            VOLUME_DOWN: 448,
-
-            MUTE: 449
-
-        },
-
-
-        /*
-         * Текущий обработчик приложения
-         */
-
+        KEY: { LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, ENTER: 13, BACK: 10009, PLAY_PAUSE: 10252 },
         handler: null,
-
-
-        /*
-         * Установить обработчик
-         */
-
-        setHandler: function (
-            callback
-        ) {
-
-            this.handler =
-                callback;
-        },
-
-
-        /*
-         * Запустить обработку пульта
-         */
-
+        setHandler: function (cb) { this.handler = cb; },
         init: function () {
-
             var self = this;
-
-
-            document.addEventListener(
-                "keydown",
-                function (event) {
-
-                    var keyCode =
-                        event.keyCode;
-
-
-                    /*
-                     * Если открыто нижнее мега-меню или шторка серий,
-                     * пульт перехватывает управление на себя.
-                     */
-
-                    if (
-                        self.handleMegaMenuNavigation(
-                            keyCode,
-                            event
-                        )
-                    ) {
-                        return;
+            document.addEventListener("keydown", function (e) {
+                var code = e.keyCode;
+                if (self.handleMenuNav(code, e)) return;
+                if (code === self.KEY.DOWN) {
+                    var scr = document.getElementById("playerScreen");
+                    var menu = document.getElementById("bottomSettingsMenu");
+                    if (scr && menu && menu.className.indexOf("hidden") !== -1 && scr.className.indexOf("hidden") === -1) {
+                        self.openMenu(); e.preventDefault(); return;
                     }
-
-
-                    /*
-                     * При нажатии кнопки ВНИЗ во время воспроизведения
-                     * открывается наше мега-меню настроек.
-                     */
-
-                    if (
-                        keyCode ===
-                        self.KEY.DOWN
-                    ) {
-
-                        // Проверяем, что мы на экране плеера и HUD не скрыт
-                        var playerScreen = document.getElementById("playerScreen");
-
-                        if (
-                            playerScreen && 
-                            menu.className.indexOf("hidden") !== -1
-                        ) {
-
-                            self.openMegaMenu();
-
-                            event.preventDefault();
-
-                            return;
-                        }
-                    }
-
-
-                    /*
-                     * Не позволяем браузеру
-                     * обрабатывать стандартные
-                     * действия клавиш.
-                     */
-
-                    if (
-                        keyCode ===
-                        self.KEY.BACK
-                    ) {
-
-                        event.preventDefault();
-                    }
-
-
-                    if (
-                        self.handler
-                    ) {
-
-                        self.handler(
-                            keyCode,
-                            event
-                        );
-                    }
-
-                },
-                false
-            );
-
-
-            console.log(
-                "[Remote] initialized"
-            );
+                }
+                if (code === self.KEY.BACK) e.preventDefault();
+                if (self.handler) self.handler(code, e);
+            }, false);
         },
-
-
-        /*
-         * Открытие мега-меню
-         */
-
-        openMegaMenu: function () {
-
-            var menu =
-                document.getElementById(
-                    "bottomSettingsMenu"
-                );
-
-
-            if (!menu) {
-                return;
-            }
-
-
-            menu.className =
-                "bottom-menu-panel";
-
-
-            if (
-                window.TorrentTracks &&
-                typeof window.TorrentTracks.renderMegaMenu === "function"
-            ) {
-
-                window.TorrentTracks.renderMegaMenu();
-            }
-
-
-            // Фокусируемся на первой аудиодорожке (первая плитка первого ряда)
-            var firstAudio =
-                document.querySelector(
-                    "#menuAudioTracks .track-item"
-                );
-
-
-            if (firstAudio) {
-
-                firstAudio.focus();
-            }
+        openMenu: function () {
+            var m = document.getElementById("bottomSettingsMenu"); if (!m) return;
+            m.className = "bottom-menu-panel";
+            if (window.TorrentTracks && typeof window.TorrentTracks.renderMegaMenu === "function") window.TorrentTracks.renderMegaMenu();
+            var first = document.querySelector("#menuAudioTracks .track-item"); if (first) first.focus();
         },
-
-
-        /*
-         * Логика навигации внутри сложного мега-меню
-         */
-
-        handleMegaMenuNavigation: function (
-            keyCode,
-            event
-        ) {
-
-            var menu =
-                document.getElementById(
-                    "bottomSettingsMenu"
-                );
-
-
-            var sidebar =
-                document.getElementById(
-                    "playlistSidebar"
-                );
-
-
-            if (
-                !menu ||
-                menu.className.indexOf("hidden") !== -1
-            ) {
-                return false;
+        handleMenuNav: function (code, e) {
+            var m = document.getElementById("bottomSettingsMenu"); var sb = document.getElementById("playlistSidebar");
+            if (!m || m.className.indexOf("hidden") !== -1) return false;
+            var act = document.activeElement;
+            if (code === this.KEY.BACK) {
+                if (sb && sb.className.indexOf("hidden") === -1) {
+                    sb.className = "playlist-sidebar hidden";
+                    var btn = document.getElementById("openPlaylistBtn"); if (btn) btn.focus();
+                } else { m.className = "bottom-menu-panel hidden"; }
+                e.preventDefault(); return true;
             }
-
-
-            var activeEl =
-                document.activeElement;
-
-
-            /*
-             * Кнопка BACK закрывает меню послойно
-             */
-
-            if (
-                keyCode === this.KEY.BACK
-            ) {
-
-                // Если открыта шторка серий — закрываем только её
-                if (
-                    sidebar && 
-                    sidebar.className.indexOf("hidden") === -1
-                ) {
-
-                    sidebar.className = "playlist-sidebar hidden";
-
-                    // Возвращаем фокус на кнопку плейлиста в меню
-                    var playlistBtn = document.getElementById("openPlaylistBtn");
-
-                    if (playlistBtn) { playlistBtn.focus(); }
-
-                } else {
-
-                    // Если шторка закрыта — закрываем всё нижнее меню
-                    menu.className = "bottom-menu-panel hidden";
+            if (sb && sb.className.indexOf("hidden") === -1) {
+                if (code === this.KEY.UP || code === this.KEY.DOWN) {
+                    var n = (code === this.KEY.DOWN) ? act.nextElementSibling : act.previousElementSibling;
+                    if (n && n.className.indexOf("track-item") !== -1) n.focus();
+                    e.preventDefault(); return true;
                 }
-
-
-                event.preventDefault();
-
+                if (code === this.KEY.ENTER) { if (act) act.click(); e.preventDefault(); return true; }
                 return true;
             }
-
-
-            /*
-             * ЕСЛИ ОТКРЫТА ШТОРКА СЕРИЙ (Вертикальный список)
-             */
-
-            if (
-                sidebar &&
-                sidebar.className.indexOf("hidden") === -1
-            ) {
-
-                if (
-                    keyCode === this.KEY.UP ||
-                    keyCode === this.KEY.DOWN
-                ) {
-
-                    var nextNode =
-                        keyCode === this.KEY.DOWN
-                            ? activeEl.nextElementSibling
-                            : activeEl.previousElementSibling;
-
-
-                    if (
-                        nextNode &&
-                        nextNode.className.indexOf("track-item") !== -1
-                    ) {
-
-                        nextNode.focus();
-                    }
-
-
-                    event.preventDefault();
-
-                    return true;
+            if (code === this.KEY.LEFT || code === this.KEY.RIGHT) {
+                if (act && act.className.indexOf("track-item") !== -1) {
+                    var s = (code === this.KEY.RIGHT) ? act.nextElementSibling : act.previousElementSibling;
+                    if (s) { s.focus(); s.parentNode.scrollLeft = s.offsetLeft - 50; }
                 }
-
-
-                if (
-                    keyCode === this.KEY.ENTER
-                ) {
-
-                    if (activeEl) { activeEl.click(); }
-
-                    event.preventDefault();
-
-                    return true;
-                }
-
-
-                return true; // Блокируем остальные кнопки для плеера, пока шторка открыта
+                e.preventDefault(); return true;
             }
-
-
-            /*
-             * НАВИГАЦИЯ ВНУТРИ НИЖНЕЙ ПАНЕЛИ (Горизонтальные ряды)
-             */
-
-            // Перемещение ВЛЕВО / ВПРАВО по плиткам в текущем ряду
-            if (
-                keyCode === this.KEY.LEFT ||
-                keyCode === this.KEY.RIGHT
-            ) {
-
-                if (
-                    activeEl &&
-                    activeEl.className.indexOf("track-item") !== -1
-                ) {
-
-                    var siblingNode =
-                        keyCode === this.KEY.RIGHT
-                            ? activeEl.nextElementSibling
-                            : activeEl.previousElementSibling;
-
-
-                    if (siblingNode) {
-
-                        siblingNode.focus();
-
-                        // Плавный автоматический скролл горизонтального ряда под фокус пульта
-                        siblingNode.parentNode.scrollLeft = siblingNode.offsetLeft - 50;
-                    }
+            if (code === this.KEY.UP || code === this.KEY.DOWN) {
+                if (act) {
+                    var curSec = act.parentNode.parentNode;
+                    var tarSec = (code === this.KEY.DOWN) ? curSec.nextElementSibling : curSec.previousElementSibling;
+                    if (tarSec && !tarSec.querySelector(".track-item")) tarSec = (code === this.KEY.DOWN) ? tarSec.nextElementSibling : tarSec.previousElementSibling;
+                    if (tarSec) { var tarBtn = tarSec.querySelector(".track-item"); if (tarBtn) tarBtn.focus(); }
                 }
-
-
-                event.preventDefault();
-
-                return true;
+                e.preventDefault(); return true;
             }
-
-
-            // Перемещение ВВЕРХ / ВНИЗ между рядами настроек
-            if (
-                keyCode === this.KEY.UP ||
-                keyCode === this.KEY.DOWN
-            ) {
-
-                if (activeEl) {
-
-                    var currentSection = activeEl.parentNode.parentNode; 
-
-                    var targetSection =
-                        keyCode === this.KEY.DOWN
-                            ? currentSection.nextElementSibling
-                            : currentSection.previousElementSibling;
-
-
-                    // Если перескакиваем через декоративные элементы (например, прогресс-бар)
-                    if (
-                        targetSection && 
-                        !targetSection.querySelector(".track-item")
-                    ) {
-                        targetSection =
-                            keyCode === this.KEY.DOWN
-                                ? targetSection.nextElementSibling
-                                : targetSection.previousElementSibling;
-                    }
-
-
-                    if (targetSection) {
-
-                        var targetBtn = targetSection.querySelector(".track-item");
-
-                        if (targetBtn) { targetBtn.focus(); }
-                    }
+            if (code === this.KEY.ENTER) {
+                if (act) {
+                    if (act.id === "openPlaylistBtn") {
+                        if (sb) { sb.className = "playlist-sidebar"; var fEp = document.querySelector("#seriesListContainer .track-item"); if (fEp) fEp.focus(); }
+                    } else { act.click(); }
                 }
-
-
-                event.preventDefault();
-
-                return true;
+                e.preventDefault(); return true;
             }
-
-
-            /*
-             * Нажатие ENTER на элементах меню
-             */
-
-            if (
-                keyCode === this.KEY.ENTER
-            ) {
-
-                if (activeEl) {
-
+            return false;
+        }
+    };
+    Remote.init(); window.TorrentRemote = Remote;
+})();
