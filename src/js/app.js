@@ -1,4 +1,3 @@
-```javascript
 (function () {
     "use strict";
 
@@ -8,13 +7,7 @@
      * Главный контроллер приложения.
      *
      * Соединяет:
-     *
-     * UI
-     * Remote
-     * AVPlay
-     * Storage
-     * Tracks
-     *
+     * UI, Remote, AVPlay, Storage, Tracks
      */
 
 
@@ -38,6 +31,13 @@
         lastPosition: 0,
 
         streamReady: false,
+
+        // Переменные для интеграции с TorServe
+        torServeUrl: "http://127.0.0.1:8090",
+
+        currentHash: "",
+
+        currentFileIndex: 0,
 
 
         /*
@@ -102,14 +102,14 @@
             var self = this;
 
 
-            window.TorrentPlayer =
-                new TorrentAVPlayer();
+            // Используем глобальный экземпляр, созданный в avplay.js
+            if (!window.TorrentAVPlay) {
+                console.error("[App] TorrentAVPlay module not found!");
+                return;
+            }
 
 
-            TorrentPlayer.init();
-
-
-            TorrentPlayer.setEvents({
+            window.TorrentAVPlay.setEvents({
 
                 /*
                  * Поток начал буферизацию
@@ -178,6 +178,10 @@
 
 
                         self.startPositionSaving();
+
+
+                        // Автоматически загружаем озвучки, сабы и серии из TorServe при старте
+                        self.loadMediaTracksAndPlaylist();
                     },
 
 
@@ -248,226 +252,11 @@
                     }
 
             });
-
-
-            TorrentPlayer.setVolume(
-                this.volume
-            );
         },
 
 
         /*
-         * Привязка UI
-         */
-
-        bindUI: function () {
-
-            var self = this;
-
-
-            var playButton =
-                document.getElementById(
-                    "playButton"
-                );
-
-
-            if (playButton) {
-
-                playButton.addEventListener(
-                    "click",
-                    function () {
-
-                        var input =
-                            document.getElementById(
-                                "streamUrl"
-                            );
-
-
-                        if (!input) {
-                            return;
-                        }
-
-
-                        self.playUrl(
-                            input.value
-                        );
-                    }
-                );
-            }
-
-
-            var playPauseButton =
-                document.getElementById(
-                    "playPauseButton"
-                );
-
-
-            if (playPauseButton) {
-
-                playPauseButton.addEventListener(
-                    "click",
-                    function () {
-
-                        self.togglePlay();
-                    }
-                );
-            }
-
-
-            var rewindButton =
-                document.getElementById(
-                    "rewindButton"
-                );
-
-
-            if (rewindButton) {
-
-                rewindButton.addEventListener(
-                    "click",
-                    function () {
-
-                        self.seekRelative(
-                            -10000
-                        );
-                    }
-                );
-            }
-
-
-            var forwardButton =
-                document.getElementById(
-                    "forwardButton"
-                );
-
-
-            if (forwardButton) {
-
-                forwardButton.addEventListener(
-                    "click",
-                    function () {
-
-                        self.seekRelative(
-                            10000
-                        );
-                    }
-                );
-            }
-
-
-            var muteButton =
-                document.getElementById(
-                    "muteButton"
-                );
-
-
-            if (muteButton) {
-
-                muteButton.addEventListener(
-                    "click",
-                    function () {
-
-                        self.toggleMute();
-                    }
-                );
-            }
-
-
-            var retryButton =
-                document.getElementById(
-                    "retryButton"
-                );
-
-
-            if (retryButton) {
-
-                retryButton.addEventListener(
-                    "click",
-                    function () {
-
-                        self.hideError();
-
-
-                        if (
-                            self.currentUrl
-                        ) {
-
-                            self.playUrl(
-                                self.currentUrl
-                            );
-                        }
-                    }
-                );
-            }
-
-
-            var backButton =
-                document.getElementById(
-                    "backButton"
-                );
-
-
-            if (backButton) {
-
-                backButton.addEventListener(
-                    "click",
-                    function () {
-
-                        self.hideError();
-
-                        self.showHome();
-                    }
-                );
-            }
-
-
-            var updateButton =
-                document.getElementById(
-                    "updateButton"
-                );
-
-
-            if (updateButton) {
-
-                updateButton.addEventListener(
-                    "click",
-                    function () {
-
-                        if (
-                            window.TorrentUpdater
-                        ) {
-
-                            TorrentUpdater.check(
-                                true
-                            );
-                        }
-                    }
-                );
-            }
-
-
-            /*
-             * URL из последнего запуска
-             */
-
-            var input =
-                document.getElementById(
-                    "streamUrl"
-                );
-
-
-            if (
-                input &&
-                this.currentUrl
-            ) {
-
-                input.value =
-                    this.currentUrl;
-            }
-        },
-
-
-        /*
-         * Управление пультом
+         * Инициализация Remote пульта
          */
 
         initRemote: function () {
@@ -475,1161 +264,229 @@
             var self = this;
 
 
-            TorrentRemote.setHandler(
-                function (
-                    keyCode
-                ) {
+            if (window.TorrentRemote) {
 
-                    self.handleRemote(
-                        keyCode
-                    );
-                }
-            );
-        },
+                window.TorrentRemote.setHandler(function (keyCode) {
 
+                    // Стандартный обработчик кнопок пульта для экрана плеера
+                    if (self.currentScreen === "player") {
 
-        /*
-         * Обработка клавиш
-         */
+                        if (keyCode === window.TorrentRemote.KEY.BACK) {
 
-        handleRemote: function (
-            keyCode
-        ) {
+                            self.stop();
 
-            /*
-             * BACK
-             */
+                            self.showHome();
 
-            if (
-                TorrentRemote.isBack(
-                    keyCode
-                )
-            ) {
+                        } else if (keyCode === window.TorrentRemote.KEY.PLAY_PAUSE) {
 
-                this.handleBack();
-
-                return;
-            }
-
-
-            /*
-             * PLAY/PAUSE
-             */
-
-            if (
-                TorrentRemote.isPlayPause(
-                    keyCode
-                )
-            ) {
-
-                if (
-                    this.currentScreen ===
-                    "player"
-                ) {
-
-                    this.togglePlay();
-                }
-
-                return;
-            }
-
-
-            /*
-             * PLAY
-             */
-
-            if (
-                TorrentRemote.isPlay(
-                    keyCode
-                )
-            ) {
-
-                if (
-                    this.currentScreen ===
-                    "player"
-                ) {
-
-                    this.play();
-                }
-
-                return;
-            }
-
-
-            /*
-             * PAUSE
-             */
-
-            if (
-                TorrentRemote.isPause(
-                    keyCode
-                )
-            ) {
-
-                if (
-                    this.currentScreen ===
-                    "player"
-                ) {
-
-                    this.pause();
-                }
-
-                return;
-            }
-
-
-            /*
-             * ENTER
-             */
-
-            if (
-                TorrentRemote.isEnter(
-                    keyCode
-                )
-            ) {
-
-                this.handleEnter();
-
-                return;
-            }
-
-
-            /*
-             * LEFT
-             */
-
-            if (
-                keyCode ===
-                TorrentRemote.KEY.LEFT
-            ) {
-
-                if (
-                    this.currentScreen ===
-                    "player"
-                ) {
-
-                    this.seekRelative(
-                        -10000
-                    );
-                }
-
-                return;
-            }
-
-
-            /*
-             * RIGHT
-             */
-
-            if (
-                keyCode ===
-                TorrentRemote.KEY.RIGHT
-            ) {
-
-                if (
-                    this.currentScreen ===
-                    "player"
-                ) {
-
-                    this.seekRelative(
-                        10000
-                    );
-                }
-
-                return;
-            }
-
-
-            /*
-             * VOLUME UP
-             */
-
-            if (
-                keyCode ===
-                TorrentRemote.KEY.VOLUME_UP
-            ) {
-
-                this.changeVolume(
-                    5
-                );
-
-                return;
-            }
-
-
-            /*
-             * VOLUME DOWN
-             */
-
-            if (
-                keyCode ===
-                TorrentRemote.KEY.VOLUME_DOWN
-            ) {
-
-                this.changeVolume(
-                    -5
-                );
-
-                return;
-            }
-
-
-            /*
-             * MUTE
-             */
-
-            if (
-                keyCode ===
-                TorrentRemote.KEY.MUTE
-            ) {
-
-                this.toggleMute();
-
-                return;
+                            self.togglePlay();
+                        }
+                    }
+                });
             }
         },
 
 
         /*
-         * ENTER
+         * Извлечение параметров TorServe из ссылки потока
          */
 
-        handleEnter: function () {
+        parseTorServeParams: function (url) {
 
-            if (
-                this.currentScreen ===
-                "home"
-            ) {
+            try {
 
-                var input =
-                    document.getElementById(
-                        "streamUrl"
-                    );
+                if (!url) { return; }
+
+                // Вытаскиваем базовый URL TorServe (например, http://192.168.1.100:8090)
+                var matchUrl = url.match(/^(https?:\/\/[^\/]+)/);
+
+                if (matchUrl) { this.torServeUrl = matchUrl[1]; }
 
 
-                if (
-                    input &&
-                    input.value
-                ) {
+                // Вытаскиваем хэш раздачи (параметр link или play)
+                var matchHash = url.match(/[?&](link|play)=([^&]+)/);
 
-                    this.playUrl(
-                        input.value
-                    );
+                if (matchHash) { this.currentHash = matchHash[2]; }
+
+
+                // Вытаскиваем индекс файла (index)
+                var matchIndex = url.match(/[?&]index=(\d+)/);
+
+                if (matchIndex) {
+
+                    this.currentFileIndex = parseInt(matchIndex[2], 10);
+
+                } else {
+
+                    this.currentFileIndex = 0;
                 }
+
+                console.log("[App] TorServe parsed:", this.torServeUrl, this.currentHash, this.currentFileIndex);
+
+            } catch (e) {
+
+                console.error("[App] URL parse error:", e);
             }
         },
 
 
         /*
-         * BACK
+         * Загрузка дорожек и плейлиста через менеджер треков
          */
 
-        handleBack: function () {
-
-            if (
-                this.currentScreen ===
-                "player"
-            ) {
-
-                this.pause();
-
-                this.savePosition();
-
-                this.stopPositionSaving();
-
-                TorrentPlayer.stop();
-
-                this.showHome();
-
-                return;
-            }
-
-
-            if (
-                this.currentScreen ===
-                "settings"
-            ) {
-
-                this.showHome();
-
-                return;
-            }
-        },
-
-
-        /*
-         * Запуск URL
-         */
-
-        playUrl: function (
-            url
-        ) {
+        loadMediaTracksAndPlaylist: function () {
 
             var self = this;
 
 
-            url =
-                String(url || "")
-                    .trim();
+            if (
+                window.TorrentTracks && 
+                self.currentHash
+            ) {
 
+                window.TorrentTracks.loadTorrentData(
+                    self.torServeUrl,
+                    self.currentHash,
+                    self.currentFileIndex,
+                    function () {
 
-            if (!url) {
-
-                this.showError(
-                    "Введите URL потока."
-                );
-
-                return;
-            }
-
-
-            this.currentUrl =
-                url;
-
-
-            TorrentStorage.setLastUrl(
-                url
-            );
-
-
-            this.streamReady =
-                false;
-
-
-            this.showPlayer();
-
-
-            this.showLoading(
-                "Подключение..."
-            );
-
-
-            TorrentTracks.reset();
-
-
-            TorrentPlayer.open(
-                url,
-                function (
-                    error
-                ) {
-
-                    if (error) {
-
-                        self.showError(
-                            "Не удалось открыть поток."
-                        );
-
-                        return;
+                        console.log("[App] Tracks and playlist successfully loaded from TorServe");
                     }
-
-                }
-            );
+                );
+            }
         },
 
 
         /*
-         * Play
+         * Метод переключения серии из боковой шторки плейлиста
          */
 
-        play: function () {
+        playFile: function (fileIndex, fileUrl) {
 
-            if (
-                !this.streamReady
-            ) {
+            console.log("[App] Switching to episode index:", fileIndex);
 
-                return;
-            }
+            this.currentFileIndex = fileIndex;
 
-
-            if (
-                TorrentPlayer.play()
-            ) {
-
-                this.isPlaying =
-                    true;
-
-
-                this.updatePlayButton();
-            }
+            this.playUrl(fileUrl);
         },
 
 
         /*
-         * Pause
+         * Запуск воспроизведения ссылки
          */
 
-        pause: function () {
+        playUrl: function (url) {
 
-            if (
-                !this.streamReady
-            ) {
+            if (!url) { return; }
 
-                return;
+
+            this.currentUrl = url;
+
+            TorrentStorage.setLastUrl(url);
+
+
+            this.parseTorServeParams(url);
+
+
+            this.showScreen("player");
+
+            this.showLoading("Запуск потока...");
+
+
+            if (window.TorrentAVPlay) {
+
+                window.TorrentAVPlay.open(url);
             }
-
-
-            if (
-                TorrentPlayer.pause()
-            ) {
-
-                this.isPlaying =
-                    false;
-
-
-                this.updatePlayButton();
-            }
-
-
-            this.savePosition();
         },
 
 
         /*
-         * Play/Pause
+         * Воспроизведение / Пауза
          */
 
         togglePlay: function () {
 
-            if (
-                this.isPlaying
-            ) {
+            if (!this.streamReady || !window.TorrentAVPlay) { return; }
 
-                this.pause();
+
+            if (this.isPlaying) {
+
+                window.TorrentAVPlay.pause();
+
+                this.isPlaying = false;
 
             } else {
 
-                this.play();
+                window.TorrentAVPlay.play();
+
+                this.isPlaying = true;
+            }
+        },
+
+
+        play: function () {
+
+            if (window.TorrentAVPlay) {
+
+                window.TorrentAVPlay.play();
+
+                this.isPlaying = true;
+            }
+        },
+
+
+        stop: function () {
+
+            this.streamReady = false;
+
+            this.stopPositionSaving();
+
+
+            if (window.TorrentAVPlay) {
+
+                window.TorrentAVPlay.stop();
             }
         },
 
 
         /*
-         * Перемотка
+         * Относительная перемотка
          */
 
-        seekRelative: function (
-            milliseconds
-        ) {
+        seekRelative: function (ms) {
 
-            if (
-                !this.streamReady
-            ) {
-
-                return;
-            }
+            if (!this.streamReady || !window.TorrentAVPlay) { return; }
 
 
-            var current =
-                TorrentPlayer
-                    .getCurrentTime();
+            var target = window.TorrentAVPlay.currentTime + ms;
+
+            if (target < 0) { target = 0; }
+
+            if (target > window.TorrentAVPlay.duration) { target = window.TorrentAVPlay.duration; }
 
 
-            var duration =
-                TorrentPlayer
-                    .getDuration();
-
-
-            var target =
-                current +
-                milliseconds;
-
-
-            target =
-                Math.max(
-                    0,
-                    Math.min(
-                        duration,
-                        target
-                    )
-                );
-
-
-            TorrentPlayer.seekTo(
-                target
-            );
-
-
-            this.updateTime(
-                target
-            );
-
-
-            this.savePosition();
+            window.TorrentAVPlay.seekTo(target);
         },
 
 
         /*
-         * Восстановить позицию
+         * Mute звука
          */
 
-        restorePosition: function () {
+        toggleMute: function () {
 
-            if (
-                !this.currentUrl
-            ) {
+            // Логика управления звуком при необходимости
+            this.isMuted = !this.isMuted;
 
-                return;
-            }
-
-
-            var position =
-                TorrentStorage
-                    .getPosition(
-                        this.currentUrl
-                    );
-
-
-            var duration =
-                TorrentPlayer
-                    .getDuration();
-
-
-            /*
-             * Не восстанавливаем последние
-             * несколько секунд фильма.
-             */
-
-            if (
-                position > 10000 &&
-                position <
-                duration - 10000
-            ) {
-
-                this.lastPosition =
-                    position;
-
-
-                TorrentPlayer.seekTo(
-                    position
-                );
-            }
+            TorrentStorage.setMuted(this.isMuted);
         },
 
 
         /*
-         * Сохранить позицию
-         */
-
-        savePosition: function () {
-
-            if (
-                !this.currentUrl ||
-                !this.streamReady
-            ) {
-
-                return;
-            }
-
-
-            var position =
-                TorrentPlayer
-                    .getCurrentTime();
-
-
-            if (
-                position > 0
-            ) {
-
-                TorrentStorage
-                    .setPosition(
-                        this.currentUrl,
-                        position
-                    );
-            }
-        },
-
-
-        /*
-         * Автоматически сохраняем позицию
+         * Запоминание и восстановление позиции
          */
 
         startPositionSaving: function () {
 
             var self = this;
 
-
-            this.stopPositionSaving();
-
-
-            this.positionSaveTimer =
-                setInterval(
-                    function () {
-
-                        self.savePosition();
-
-                    },
-                    10000
-                );
-        },
-
-
-        stopPositionSaving: function () {
-
-            if (
-                this.positionSaveTimer
-            ) {
-
-                clearInterval(
-                    this.positionSaveTimer
-                );
-
-
-                this.positionSaveTimer =
-                    null;
-            }
-        },
-
-
-        /*
-         * Громкость
-         */
-
-        changeVolume: function (
-            amount
-        ) {
-
-            var newVolume =
-                this.volume +
-                amount;
-
-
-            newVolume =
-                Math.max(
-                    0,
-                    Math.min(
-                        100,
-                        newVolume
-                    )
-                );
-
-
-            this.volume =
-                newVolume;
-
-
-            this.isMuted =
-                false;
-
-
-            TorrentPlayer.setVolume(
-                newVolume
-            );
-
-
-            TorrentStorage.setVolume(
-                newVolume
-            );
-
-
-            TorrentStorage.setMuted(
-                false
-            );
-
-
-            this.updateVolumeButton();
-        },
-
-
-        /*
-         * Mute
-         */
-
-        toggleMute: function () {
-
-            this.isMuted =
-                !this.isMuted;
-
-
-            if (
-                this.isMuted
-            ) {
-
-                TorrentPlayer.setVolume(
-                    0
-                );
-
-            } else {
-
-                TorrentPlayer.setVolume(
-                    this.volume
-                );
-            }
-
-
-            TorrentStorage.setMuted(
-                this.isMuted
-            );
-
-
-            this.updateVolumeButton();
-        },
-
-
-        /*
-         * Обновить кнопку Play/Pause
-         */
-
-        updatePlayButton: function () {
-
-            var button =
-                document.getElementById(
-                    "playPauseButton"
-                );
-
-
-            if (!button) {
-                return;
-            }
-
-
-            button.textContent =
-                this.isPlaying
-                    ? "❚❚"
-                    : "▶";
-        },
-
-
-        /*
-         * Обновить кнопку громкости
-         */
-
-        updateVolumeButton: function () {
-
-            var button =
-                document.getElementById(
-                    "muteButton"
-                );
-
-
-            if (!button) {
-                return;
-            }
-
-
-            button.textContent =
-                this.isMuted
-                    ? "🔇"
-                    : "🔊";
-        },
-
-
-        /*
-         * Обновить время
-         */
-
-        updateTime: function (
-            milliseconds
-        ) {
-
-            var duration =
-                TorrentPlayer
-                    .getDuration();
-
-
-            var current =
-                milliseconds || 0;
-
-
-            var progress =
-                0;
-
-
-            if (
-                duration > 0
-            ) {
-
-                progress =
-                    (
-                        current /
-                        duration
-                    ) * 100;
-            }
-
-
-            var progressElement =
-                document.getElementById(
-                    "progress"
-                );
-
-
-            if (
-                progressElement
-            ) {
-
-                progressElement.style.width =
-                    progress + "%";
-            }
-
-
-            var currentElement =
-                document.getElementById(
-                    "currentTime"
-                );
-
-
-            if (
-                currentElement
-            ) {
-
-                currentElement.textContent =
-                    this.formatTime(
-                        current
-                    );
-            }
-        },
-
-
-        /*
-         * Обновить длительность
-         */
-
-        updateDuration: function (
-            duration
-        ) {
-
-            var element =
-                document.getElementById(
-                    "duration"
-                );
-
-
-            if (
-                element
-            ) {
-
-                element.textContent =
-                    this.formatTime(
-                        duration
-                    );
-            }
-        },
-
-
-        /*
-         * Буфер
-         */
-
-        updateBuffer: function (
-            percent
-        ) {
-
-            var element =
-                document.getElementById(
-                    "bufferStatus"
-                );
-
-
-            if (
-                element
-            ) {
-
-                element.textContent =
-                    "Буфер: " +
-                    Math.round(
-                        percent
-                    ) +
-                    "%";
-            }
-        },
-
-
-        /*
-         * Форматирование времени
-         */
-
-        formatTime: function (
-            milliseconds
-        ) {
-
-            var totalSeconds =
-                Math.floor(
-                    milliseconds / 1000
-                );
-
-
-            var hours =
-                Math.floor(
-                    totalSeconds / 3600
-                );
-
-
-            var minutes =
-                Math.floor(
-                    (
-                        totalSeconds % 3600
-                    ) / 60
-                );
-
-
-            var seconds =
-                totalSeconds % 60;
-
-
-            if (
-                hours > 0
-            ) {
-
-                return (
-                    this.pad(hours) +
-                    ":" +
-                    this.pad(minutes) +
-                    ":" +
-                    this.pad(seconds)
-                );
-            }
-
-
-            return (
-                this.pad(minutes) +
-                ":" +
-                this.pad(seconds)
-            );
-        },
-
-
-        pad: function (
-            number
-        ) {
-
-            return number < 10
-                ? "0" + number
-                : String(number);
-        },
-
-
-        /*
-         * Показать Home
-         */
-
-        showHome: function () {
-
-            this.currentScreen =
-                "home";
-
-
-            this.hideElement(
-                "playerScreen"
-            );
-
-
-            this.hideElement(
-                "settingsScreen"
-            );
-
-
-            this.showElement(
-                "homeScreen"
-            );
-
-
-            this.hideLoading();
-
-            this.hideElement(
-                "playerHud"
-            );
-        },
-
-
-        /*
-         * Показать Player
-         */
-
-        showPlayer: function () {
-
-            this.currentScreen =
-                "player";
-
-
-            this.hideElement(
-                "homeScreen"
-            );
-
-
-            this.hideElement(
-                "settingsScreen"
-            );
-
-
-            this.showElement(
-                "playerScreen"
-            );
-
-
-            this.showElement(
-                "playerHud"
-            );
-        },
-
-
-        /*
-         * Loading
-         */
-
-        showLoading: function (
-            text
-        ) {
-
-            var loading =
-                document.getElementById(
-                    "loading"
-                );
-
-
-            var label =
-                document.getElementById(
-                    "loadingText"
-                );
-
-
-            if (
-                label &&
-                text
-            ) {
-
-                label.textContent =
-                    text;
-            }
-
-
-            if (loading) {
-
-                loading.classList.remove(
-                    "hidden"
-                );
-            }
-        },
-
-
-        hideLoading: function () {
-
-            this.hideElement(
-                "loading"
-            );
-        },
-
-
-        /*
-         * Error dialog
-         */
-
-        showError: function (
-            message
-        ) {
-
-            var dialog =
-                document.getElementById(
-                    "errorDialog"
-                );
-
-
-            var text =
-                document.getElementById(
-                    "errorMessage"
-                );
-
-
-            if (
-                text
-            ) {
-
-                text.textContent =
-                    message ||
-                    "Неизвестная ошибка.";
-            }
-
-
-            if (
-                dialog
-            ) {
-
-                dialog.classList.remove(
-                    "hidden"
-                );
-            }
-        },
-
-
-        hideError: function () {
-
-            this.hideElement(
-                "errorDialog"
-            );
-        },
-
-
-        /*
-         * Универсальное show
-         */
-
-        showElement: function (
-            id
-        ) {
-
-            var element =
-                document.getElementById(
-                    id
-                );
-
-
-            if (
-                element
-            ) {
-
-                element.classList.remove(
-                    "hidden"
-                );
-            }
-        },
-
-
-        /*
-         * Универсальное hide
-         */
-
-        hideElement: function (
-            id
-        ) {
-
-            var element =
-                document.getElementById(
-                    id
-                );
-
-
-            if (
-                element
-            ) {
-
-                element.classList.add(
-                    "hidden"
-                );
-            }
-        }
-
-    };
-
-
-    /*
-     * Запускаем приложение после загрузки DOM
-     */
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            App.init();
-
-        },
-        false
-    );
-
-
-    /*
-     * Экспорт для отладки
-     */
-
-    window.TorrentApp =
-        App;
-
-})();
-```
