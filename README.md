@@ -1,4 +1,4 @@
-# TorrentPlayer & Lampa Integration Guide
+# TorrentPlayer Pro & IPTV Media Center
 
 [Русский перевод смотрите ниже](#russian-version)
 
@@ -6,16 +6,17 @@
 
 ## English Version
 
-**TorrentPlayer** is a native, lightweight, and crash-resilient video player designed specifically for **Samsung Smart TV (Tizen OS)**. It is built for smooth, on-the-fly torrent streaming via a **TorServe** server.
+**TorrentPlayer Pro** is a native, lightweight, and crash-resilient multimedia player designed specifically for **Samsung Smart TV (Tizen OS)**. It supports both smooth, on-the-fly torrent streaming via **TorServe** and live **IPTV** playback via `.m3u` playlists.
 
 ### 🚀 Key Features
 1. **Instant Streaming:** Watch heavy torrents instantly without pre-downloading files to the TV memory.
-2. **Smart Auto Reconnect:** If Wi-Fi or server connection drops, the player makes up to 5 automated reconnection attempts, resuming playback from the exact millisecond.
-3. **Advanced Cache Controls:** Choose your pre-buffering size (Auto, 100 MB, 200 MB, 500 MB) in the bottom menu with a single click.
-4. **Status Monitoring (UP Button):** Displays a real-time download speed and buffer occupancy widget in the top-right corner. Closes with the `BACK` button.
-5. **Bottom Mega-Menu (DOWN Button):** A convenient horizontal panel to switch audio tracks, subtitles, and cache sizes during playback.
-6. **Right Series Sidebar:** A side panel with an episode list for multi-file torrents, supporting automatic transition to the next episode.
-7. **Position Memory:** Automatically remembers the exact second where you left off.
+2. **IPTV Mode (NEW):** Load your personal `.m3u` or `.m3u8` IPTV playlist directly from the main screen.
+3. **Left Channels Sidebar (NEW):** Press the **LEFT** button during IPTV playback to open a smooth, scrollable TV channel list.
+4. **Smart Auto Reconnect:** If Wi-Fi drops, the player makes up to 5 automated reconnection attempts, resuming playback from the exact millisecond.
+5. **Advanced Cache Controls:** Choose your pre-buffering size (Auto, 100 MB, 200 MB, 500 MB) in the bottom menu with a single click.
+6. **Status Monitoring (UP Button):** Displays real-time TorServe download speed and buffer occupancy in the top-right corner.
+7. **Bottom Mega-Menu (DOWN Button):** A convenient horizontal panel to switch audio tracks, subtitles, and cache sizes during movie playback.
+8. **Right Series Sidebar:** A side panel with an episode list for multi-file torrents.
 
 ### 🔊 Fix for DTS Audio on Samsung TVs
 Since 2018, Samsung TVs **do not support DTS audio tracks** at the hardware level. Running a movie with such audio directly results in video without sound.
@@ -23,7 +24,6 @@ Our player handles this via Tizen audio mixer safety fallbacks, but for a 100% s
 1. Open your TorServe server settings in a browser via `http://YOUR_SERVER_IP:8090`.
 2. Find the **Player/Torrent settings** section.
 3. Enable **Audio Transcoding** and set the target format to **AAC** or **AC3 (Dolby Digital)**.
-4. *Result:* The server transcodes unsupported DTS audio into Samsung-friendly format on the fly, and the player plays it perfectly.
 
 ### 🛠️ Building the .wgt File on a PC
 The project compiles into a standalone widget installed directly into the TV memory:
@@ -39,7 +39,7 @@ The project compiles into a standalone widget installed directly into the TV mem
 1. Format a USB drive to FAT32.
 2. Create a folder in the root directory named exactly `userwidget`.
 3. Copy your `TorrentPlayer.wgt` file into the `userwidget` folder.
-4. Plug the USB drive into your turned-on TV. Installation will start automatically.
+4. Plug the USB drive into your turned-on TV.
 #### Method 2: Via PC and Developer Mode (For all modern Tizen models)
 1. Open the TV apps menu (`Apps`).
 2. Press `1, 2, 3, 4, 5` sequentially on a standard remote. The hidden **Developer Mode** window will open.
@@ -52,31 +52,31 @@ The built-in `lampa-plugin.js` allows the Lampa catalog to automatically detect 
 #### How to use:
 1. Launch TorrentPlayer on the TV so it stays active in the background.
 2. Open **Lampa**. Click "Watch" on any torrent from the built-in TorServe tab.
-3. Lampa closes its default player and passes the direct link to our player. The screen shows "Launching...", and the movie starts with full remote and mega-menu support.
+3. Lampa closes its default player and passes the direct link to our player. The movie starts with full remote and mega-menu support.
 #### How to connect the plugin in Lampa:
 1. Open your `lampa-plugin.js` file on GitHub from a smartphone or PC.
 2. Click the **Raw** button to open the plain text.
 3. Copy the URL from the browser address bar (it must start with `https://githubusercontent.com...`).
 4. In the **Lampa** app on your TV, go to **Settings** -> **Plugins** -> **Add Plugin**.
-5. Paste the copied Raw link and click **OK**.
-6. Fully restart the Lampa application.
-7. Go to Lampa settings -> **Player** -> **Player Type** and select the new **`TorrentPlayer (WGT)`** option.
+5. Paste the copied Raw link and click **OK**. Fully restart Lampa.
+6. Go to Lampa settings -> **Player** -> **Player Type** and select **`TorrentPlayer (WGT)`**.
 
 ---
 
 <a name="russian-version"></a>
 ## Russian Version / Русская версия
 
-**TorrentPlayer** — это нативный, легкий и защищенный от сбоев видеоплеер для телевизоров **Samsung Smart TV (OS Tizen)**. Он разработан специально для воспроизведения торрентов «на лету» через сервер **TorServe**.
+**TorrentPlayer Pro** — это нативный, легкий и защищенный от сбоев медиацентр для телевизоров **Samsung Smart TV (OS Tizen)**. Он разработан специально для воспроизведения торрентов «на лету» через сервер **TorServe**, а также для полноценного просмотра живого **IPTV** через `.m3u` плейлисты.
 
 ### 🚀 Основные возможности плеера
 1. **Мгновенный стриминг:** Просмотр тяжелых торрентов без предварительного скачивания файла в память телевизора.
-2. **Умный Auto Reconnect:** При обрыве связи с Wi-Fi или сервером плеер делает 5 автоматических попыток переподключения, продолжая показ точно с той же секунды.
-3. **Продвинутое управление кэшем:** В нижнем меню можно в один клик выбрать размер буфера предзагрузки (Авто, 100 МБ, 200 МБ, 500 МБ).
-4. **Мониторинг статуса (Кнопка ВВЕРХ):** Выводит в правом верхнем углу экрана инфо-панель со скоростью загрузки и заполненностью буфера в мегабайтах. Скрывается кнопкой `BACK`.
-5. **Нижнее Мега-Меню (Кнопка ВНИЗ):** Удобный горизонтальный интерфейс для переключения аудиодорожек (озвучек), субтитров и настроек кэша прямо во время фильма.
-6. **Правая шторка серий:** Боковая панель со списком серий для многосерийных раздач с поддержкой автоматического перехода на следующий эпизод.
-7. **Память позиций:** Автоматическое запоминание секунды, на которой вы остановили просмотр.
+2. **Режим IPTV (НОВОЕ):** Возможность загрузить свой личный `.m3u` или `.m3u8` плейлист IPTV прямо со стартового экрана.
+3. **Левая шторка каналов (НОВОЕ):** Нажмите кнопку **ВЛЕВО** во время просмотра IPTV, чтобы открыть красивый, прокручиваемый список ТВ-каналов.
+4. **Умный Auto Reconnect:** При обрыве связи с Wi-Fi или сервером плеер делает 5 автоматических попыток переподключения, продолжая показ точно с той же секунды.
+5. **Продвинутое управление кэшем:** В нижнем меню можно в один клик выбрать размер буфера предзагрузки (Авто, 100 МБ, 200 МБ, 500 МБ).
+6. **Мониторинг статуса (Кнопка ВВЕРХ):** Выводит в правом верхнем углу экрана инфо-панель со скоростью загрузки и заполненностью буфера TorServe в мегабайтах.
+7. **Нижнее Мега-Меню (Кнопка ВНИЗ):** Удобный горизонтальный интерфейс для переключения аудиодорожек (озвучек), субтитров и настроек кэша прямо во время фильма.
+8. **Правая шторка серий:** Боковая панель со списком серий для многосерийных раздач.
 
 ### 🔊 Важное: Решение проблемы со звуком DTS на Samsung
 Начиная с 2018 года, телевизоры Samsung **аппаратно не поддерживают звуковые дорожки в формате DTS**. Если запустить фильм с таким звуком напрямую, видео будет идти без звука.
@@ -84,7 +84,6 @@ The built-in `lampa-plugin.js` allows the Lampa catalog to automatically detect 
 1. Откройте настройки вашего сервера TorServe через браузер по адресу `http://IP_АДРЕС_СЕРВЕРА:8090`.
 2. Найдите раздел **Настройки раздатчика / Настройки плеера** (Player settings).
 3. Включите пункт **Транскодирование аудио** (Audio Transcoding) и выберите формат перекодирования **AAC** или **AC3 (Dolby Digital)**.
-4. *Результат:* Сервер будет сам перекодировать неподдерживаемый звук DTS в понятный для Samsung формат «на лету», а наш плеер идеально воспроизведет его на телевизоре.
 
 ### 🛠️ Инструкция по сборке .wgt файла на компьютере
 Проект собирается в классический автономный виджет, который устанавливается прямо в память телевизора:
@@ -113,11 +112,11 @@ The built-in `lampa-plugin.js` allows the Lampa catalog to automatically detect 
 #### Как пользоваться интеграцией:
 1. Запустите TorrentPlayer на телевизоре, чтобы он остался активен в фоне.
 2. Откройте приложение **Lampa**. Нажмите «Смотреть» на любом торренте из встроенной вкладки раздач TorServe.
-3. Lampa мгновенно свернет свой стандартный плеер и передаст прямую ссылку нашему плееру. На экране появится надпись «Запуск...», и фильм включится на весь экран со всеми функциями пульта и мега-меню.
+3. Lampa мгновенно свернет свой стандартный плеер и передаст прямую ссылку нашему плееру. Фильм включится на весь экран со всеми функциями пульта и мега-меню.
 #### Как подключить плагин внутри Lampa:
 1. Откройте ваш файл `lampa-plugin.js` на GitHub со смартфона или ПК.
 2. Нажмите кнопку **Raw** в верхней панели файла, чтобы открыть чистый текст.
 3. Скопируйте получившуюся ссылку из адресной строки браузера (она должна начинаться с `https://githubusercontent.com...`).
 4. В приложении **Lampa** на телевизоре зайдите в **Настройки** -> **Плагины** -> **Добавить плагин**.
-5. Вставьте скопированную Raw-ссылку в поле ввода и нажмите **ОК**.
-6. Полностью перезапустите приложение Lampa.
+5. Вставьте скопированную Raw-ссылку в поле ввода и нажмите **ОК**. Полностью перезапустите Lampa.
+6. Перейдите в настройки Lampa -> раздел **Плеер** -> **Тип плеера** и выберите пункт **`TorrentPlayer (WGT)`**.
