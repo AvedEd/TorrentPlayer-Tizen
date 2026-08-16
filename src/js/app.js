@@ -76,6 +76,17 @@
             this.parseTorServeParams(url); this.showScreen("player"); this.showLoading("Запуск...");
             if (window.TorrentAVPlay) window.TorrentAVPlay.open(url);
         },
+        togglePlay: function () {
+            if (!this.streamReady || !window.TorrentAVPlay) return;
+            if (this.isPlaying) { window.TorrentAVPlay.pause(); this.isPlaying = false; }
+            else { window.TorrentAVPlay.play(); this.isPlaying = true; }
+        },
+        seekRelative: function (ms) {
+            if (!this.streamReady || !window.TorrentAVPlay) return;
+            var target = window.TorrentAVPlay.currentTime + ms;
+            if (target < 0) target = 0; if (target > window.TorrentAVPlay.duration) target = window.TorrentAVPlay.duration;
+            window.TorrentAVPlay.seekTo(target);
+        },
         stop: function () {
             this.streamReady = false; this.stopStatTimer(); if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
             this.isReconnecting = false; this.reconnectAttempts = 0; if (window.TorrentAVPlay) window.TorrentAVPlay.stop();
