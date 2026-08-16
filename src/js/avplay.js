@@ -24,6 +24,12 @@
                 onstreamcompleted: function () { if (self.events.onComplete) self.events.onComplete(); },
                 onerror: function (err) { if (self.events.onError) self.events.onError(err); }
             });
+            // Страховка от отсутствия звука на телевизорах Samsung без поддержки DTS
+            try {
+                if (typeof self.avplay.setAudioMixMethod === "function") {
+                    self.avplay.setAudioMixMethod("SAMSUNG_AUDIO_MIX_METHOD_DEFAULT");
+                }
+            } catch (ae) { console.error("[AVPlay] Audio mix error", ae); }
             self.avplay.setDisplayRect(0, 0, 1920, 1080);
             self.avplay.prepareAsync(function () {
                 try { self.duration = self.avplay.getDuration(); } catch (e) { self.duration = 0; }
@@ -35,8 +41,6 @@
     AVPlayer.prototype.pause = function () { try { this.avplay.pause(); return true; } catch (e) { return false; } };
     AVPlayer.prototype.stop = function () { try { this.avplay.stop(); } catch (e) {} try { this.avplay.close(); } catch (e) {} this.currentTime = 0; };
     AVPlayer.prototype.seekTo = function (ms) { try { this.avplay.seekTo(ms); return true; } catch (e) { return false; } };
-    
-    // Метод переключения звуковых дорожек по ID для работы нижнего мега-меню
     AVPlayer.prototype.setAudioTrack = function (id) {
         try {
             if (this.avplay && typeof this.avplay.setSelectTrack === "function") {
@@ -45,7 +49,5 @@
         } catch (e) { console.error("[AVPlay] setAudioTrack error", e); }
         return false;
     };
-
-    var playerInstance = new AVPlayer(); playerInstance.init();
-    window.TorrentAVPlay = playerInstance;
+    var playerInstance = new AVPlayer(); playerInstance.init(); window.TorrentAVPlay = playerInstance;
 })();
