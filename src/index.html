@@ -1,4 +1,43 @@
-        <!-- НОВОЕ НИЖНЕЕ МЕГА-МЕНЮ -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TorrentPlayer</title>
+    <link rel="stylesheet" href="css/player.css">
+</head>
+<body>
+    <!-- HOME SCREEN -->
+    <section id="homeScreen" class="screen home-screen">
+        <div class="home-container">
+            <div class="logo"><div class="logo-icon">▶</div><div class="logo-text">TorrentPlayer</div></div>
+            <div class="subtitle">Плеер для Samsung Smart TV</div>
+            <div class="url-container">
+                <input id="streamUrl" type="text" placeholder="URL видеопотока" autocomplete="off">
+                <button id="playButton" type="button">▶ Воспроизвести</button>
+            </div>
+            <div class="hint">Введите адрес видеопотока и нажмите OK</div>
+            <button id="updateButton" type="button" class="secondary-button">Проверить обновления</button>
+        </div>
+    </section>
+
+    <!-- PLAYER SCREEN -->
+    <section id="playerScreen" class="screen player-screen hidden">
+        <div id="videoSurface" class="video-surface"></div>
+        
+        <!-- СТАРЫЙ HUD ПЛЕЕРА -->
+        <div id="playerHud" class="player-hud hidden">
+            <div class="top-bar">
+                <div id="playerTitle" class="player-title">TorrentPlayer</div>
+                <div id="bufferStatus" class="buffer-status"></div>
+            </div>
+            <div class="bottom-panel">
+                <div class="progress-container"><div id="progress" class="progress"></div></div>
+                <div class="time-row"><span id="currentTime">00:00</span><span id="duration">00:00</span></div>
+            </div>
+        </div>
+
+        <!-- НОВОЕ НИЖНЕЕ МЕГА-МЕНЮ (Кнопка ВНИЗ) -->
         <div id="bottomSettingsMenu" class="bottom-menu-panel hidden">
             <div class="menu-progress-section">
                 <div class="progress-container"><div id="menuProgress" class="progress"></div></div>
@@ -14,7 +53,7 @@
                 <div class="row-title">Субтитры</div>
                 <div id="menuSubtitles" class="horizontal-row"></div>
             </div>
-            <!-- НОВЫЙ РЯД: Настройка буфера предзагрузки -->
+            <!-- Ряд Настройки буфера предзагрузки -->
             <div class="menu-row-section">
                 <div class="row-title">Буфер предзагрузки (Кэш TorServe)</div>
                 <div id="menuBufferSettings" class="horizontal-row"></div>
@@ -32,9 +71,29 @@
             </div>
         </div>
 
-        <!-- НОВОЕ ОКНО: Инфо-панель буфера в правом верхнем углу -->
+        <!-- Виджет буфера в правом верхнем углу (Кнопка ВВЕРХ) -->
         <div id="topBufferInfo" class="top-buffer-widget hidden">
             <div class="widget-title">Статус TorServe</div>
             <div id="bufferMegaBytes" class="widget-value">Загружено: 0 МБ</div>
             <div id="bufferSpeed" class="widget-sub">Скорость: 0 МБ/с</div>
         </div>
+    </section>
+
+    <!-- ЭКРАН НАСТРОЕК -->
+    <section id="settingsScreen" class="screen settings-screen hidden">
+        <div class="settings-container"><h1>Настройки</h1><button id="settingsBackButton" type="button">← Назад</button></div>
+    </section>
+
+    <!-- ОВЕРЛЕИ ЗАГРУЗКИ И ОШИБОК -->
+    <div id="loading" class="overlay hidden"><div class="loading-box"><div class="spinner"></div><div id="loadingText" class="loading-text">Загрузка...</div></div></div>
+    <div id="errorDialog" class="overlay hidden"><div class="dialog"><h2>Ошибка</h2><div id="errorMessage" class="error-message"></div><div class="dialog-buttons"><button id="retryButton" type="button">Повторить</button><button id="backButton" type="button">Назад</button></div></div></div>
+
+    <!-- СКРИПТЫ -->
+    <script src="$WEBAPIS/webapis/webapis.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/avplay.js"></script>
+    <script src="js/tracks.js"></script>
+    <script src="js/remote.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
