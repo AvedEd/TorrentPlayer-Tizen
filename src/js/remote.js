@@ -9,39 +9,45 @@
             document.addEventListener("keydown", function (e) {
                 var code = e.keyCode;
                 if (self.handleMenuNav(code, e)) return;
-                if (code === self.KEY.DOWN) {
-                    var scr = document.getElementById("playerScreen");
-                    var menu = document.getElementById("bottomSettingsMenu");
-                    if (scr && menu && menu.className.indexOf("hidden") !== -1 && scr.className.indexOf("hidden") === -1) {
-                        self.openMenu(); e.preventDefault(); return;
+                if (code === self.KEY.UP) {
+                    var m = document.getElementById("bottomSettingsMenu"); var w = document.getElementById("topBufferInfo");
+                    if (m && m.className.indexOf("hidden") !== -1 && w) { 
+                        w.className = "top-buffer-widget"; 
+                        if (window.TorrentApp && typeof window.TorrentApp.startStatTimer === "function") window.TorrentApp.startStatTimer();
+                        e.preventDefault(); return; 
                     }
+                }
+                if (code === self.KEY.DOWN) {
+                    var scr = document.getElementById("playerScreen"); var menu = document.getElementById("bottomSettingsMenu");
+                    if (scr && menu && menu.className.indexOf("hidden") !== -1 && scr.className.indexOf("hidden") === -1) { self.openMenu(); e.preventDefault(); return; }
                 }
                 if (code === self.KEY.BACK) e.preventDefault();
                 if (self.handler) self.handler(code, e);
             }, false);
         },
         openMenu: function () {
-            var m = document.getElementById("bottomSettingsMenu"); if (!m) return;
-            m.className = "bottom-menu-panel";
+            var m = document.getElementById("bottomSettingsMenu"); if (!m) return; m.className = "bottom-menu-panel";
             if (window.TorrentTracks && typeof window.TorrentTracks.renderMegaMenu === "function") window.TorrentTracks.renderMegaMenu();
             var first = document.querySelector("#menuAudioTracks .track-item"); if (first) first.focus();
         },
         handleMenuNav: function (code, e) {
-            var m = document.getElementById("bottomSettingsMenu"); var sb = document.getElementById("playlistSidebar");
+            var m = document.getElementById("bottomSettingsMenu"); var sb = document.getElementById("playlistSidebar"); var w = document.getElementById("topBufferInfo");
+            if (code === this.KEY.BACK && w && w.className.indexOf("hidden") === -1) { 
+                w.className = "top-buffer-widget hidden"; 
+                if (window.TorrentApp && typeof window.TorrentApp.stopStatTimer === "function") window.TorrentApp.stopStatTimer();
+                e.preventDefault(); return true; 
+            }
             if (!m || m.className.indexOf("hidden") !== -1) return false;
             var act = document.activeElement;
             if (code === this.KEY.BACK) {
-                if (sb && sb.className.indexOf("hidden") === -1) {
-                    sb.className = "playlist-sidebar hidden";
-                    var btn = document.getElementById("openPlaylistBtn"); if (btn) btn.focus();
-                } else { m.className = "bottom-menu-panel hidden"; }
+                if (sb && sb.className.indexOf("hidden") === -1) { sb.className = "playlist-sidebar hidden"; var btn = document.getElementById("openPlaylistBtn"); if (btn) btn.focus(); }
+                else { m.className = "bottom-menu-panel hidden"; }
                 e.preventDefault(); return true;
             }
             if (sb && sb.className.indexOf("hidden") === -1) {
                 if (code === this.KEY.UP || code === this.KEY.DOWN) {
                     var n = (code === this.KEY.DOWN) ? act.nextElementSibling : act.previousElementSibling;
-                    if (n && n.className.indexOf("track-item") !== -1) n.focus();
-                    e.preventDefault(); return true;
+                    if (n && n.className.indexOf("track-item") !== -1) n.focus(); e.preventDefault(); return true;
                 }
                 if (code === this.KEY.ENTER) { if (act) act.click(); e.preventDefault(); return true; }
                 return true;
@@ -64,9 +70,8 @@
             }
             if (code === this.KEY.ENTER) {
                 if (act) {
-                    if (act.id === "openPlaylistBtn") {
-                        if (sb) { sb.className = "playlist-sidebar"; var fEp = document.querySelector("#seriesListContainer .track-item"); if (fEp) fEp.focus(); }
-                    } else { act.click(); }
+                    if (act.id === "openPlaylistBtn") { if (sb) { sb.className = "playlist-sidebar"; var fEp = document.querySelector("#seriesListContainer .track-item"); if (fEp) fEp.focus(); } }
+                    else { act.click(); }
                 }
                 e.preventDefault(); return true;
             }
