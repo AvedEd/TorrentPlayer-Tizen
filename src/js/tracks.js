@@ -2,18 +2,13 @@
     "use strict";
 
     /*
-     * TorrentPlayer Tracks Manager
+     * TorrentPlayer Tracks & Playlist Manager
      *
-     * Работа с:
-     *
-     * - аудиодорожками
-     * - субтитрами
-     * - выбором языка
-     * - интеграцией с TorServe API
-     *
-     * Важно:
-     * фактические возможности зависят от потока
-     * и конкретной модели Samsung TV.
+     * Мощный модуль для работы с:
+     * - Горизонтальными аудиодорожками (озвучками)
+     * - Горизонтальными субтитрами
+     * - Плейлистом серий для сериалов (боковая шторка)
+     * - Синхронизацией таймлайна в меню
      */
 
     var Tracks = {
@@ -22,9 +17,13 @@
 
         subtitleTracks: [],
 
+        episodes: [],
+
         currentAudio: -1,
 
         currentSubtitle: -1,
+
+        currentEpisodeIndex: -1,
 
 
         /*
@@ -37,9 +36,13 @@
 
             this.subtitleTracks = [];
 
+            this.episodes = [];
+
             this.currentAudio = -1;
 
             this.currentSubtitle = -1;
+
+            this.currentEpisodeIndex = -1;
         },
 
 
@@ -117,332 +120,13 @@
 
 
         /*
-         * Добавить аудиодорожку
+         * Загрузка ВСЕХ треков и плейлиста серий из TorServe
          */
 
-        addAudioTrack: function (
-            track
-        ) {
-
-            if (!track) {
-                return;
-            }
-
-
-            var item = {
-
-                id:
-                    track.id !== undefined
-                        ? track.id
-                        : this.audioTracks.length,
-
-                language:
-                    track.language ||
-                    "",
-
-                title:
-                    track.title ||
-                    "",
-
-                codec:
-                    track.codec ||
-                    "",
-
-                channels:
-                    track.channels ||
-                    0
-
-            };
-
-
-            item.languageName =
-                this.languageName(
-                    item.language
-                );
-
-
-            this.audioTracks.push(
-                item
-            );
-        },
-
-
-        /*
-         * Добавить субтитры
-         */
-
-        addSubtitleTrack: function (
-            track
-        ) {
-
-            if (!track) {
-                return;
-            }
-
-
-            var item = {
-
-                id:
-                    track.id !== undefined
-                        ? track.id
-                        : this.subtitleTracks.length,
-
-                language:
-                    track.language ||
-                    "",
-
-                title:
-                    track.title ||
-                    "",
-
-                format:
-                    track.format ||
-                    ""
-
-            };
-
-
-            item.languageName =
-                this.languageName(
-                    item.language
-                );
-
-
-            this.subtitleTracks.push(
-                item
-            );
-        },
-
-
-        /*
-         * Получить аудиодорожки
-         */
-
-        getAudioTracks: function () {
-
-            return this.audioTracks.slice();
-        },
-
-
-        /*
-         * Получить субтитры
-         */
-
-        getSubtitleTracks: function () {
-
-            return this.subtitleTracks.slice();
-        },
-
-
-        /*
-         * Найти русскую дорожку
-         */
-
-        findRussianAudio: function () {
-
-            for (
-                var i = 0;
-                i < this.audioTracks.length;
-                i++
-            ) {
-
-                var lang =
-                    this.normalizeLanguage(
-                        this.audioTracks[i]
-                            .language
-                    );
-
-
-                if (
-                    lang === "ru" ||
-                    lang.indexOf("ru-") === 0
-                ) {
-
-                    return this.audioTracks[i];
-                }
-            }
-
-
-            return null;
-        },
-
-
-        /*
-         * Найти английскую дорожку
-         */
-
-        findEnglishAudio: function () {
-
-            for (
-                var i = 0;
-                i < this.audioTracks.length;
-                i++
-            ) {
-
-                var lang =
-                    this.normalizeLanguage(
-                        this.audioTracks[i]
-                            .language
-                    );
-
-
-                if (
-                    lang === "en" ||
-                    lang.indexOf("en-") === 0
-                ) {
-
-                    return this.audioTracks[i];
-                }
-            }
-
-
-            return null;
-        },
-
-
-        /*
-         * Автоматический выбор языка
-         *
-         * Приоритет:
-         * 1. Русский
-         * 2. Английский
-         * 3. Первая дорожка
-         */
-
-        choosePreferredAudio: function () {
-
-            var russian =
-                this.findRussianAudio();
-
-
-            if (russian) {
-
-                return russian;
-            }
-
-
-            var english =
-                this.findEnglishAudio();
-
-
-            if (english) {
-
-                return english;
-            }
-
-
-            if (
-                this.audioTracks.length > 0
-            ) {
-
-                return this.audioTracks[0];
-            }
-
-
-            return null;
-        },
-
-
-        /*
-         * Выбрать аудиодорожку
-         *
-         * Реальное переключение передаётся
-         * AVPlay-слою приложения.
-         */
-
-        selectAudio: function (
-            id
-        ) {
-
-            for (
-                var i = 0;
-                i < this.audioTracks.length;
-                i++
-            ) {
-
-                if (
-                    this.audioTracks[i].id === id
-                ) {
-
-                    this.currentAudio =
-                        id;
-
-                    return (
-                        this.audioTracks[i]
-                    );
-                }
-            }
-
-
-            return null;
-        },
-
-
-        /*
-         * Выбрать субтитры
-         */
-
-        selectSubtitle: function (
-            id
-        ) {
-
-            for (
-                var i = 0;
-                i < this.subtitleTracks.length;
-                i++
-            ) {
-
-                if (
-                    this.subtitleTracks[i].id === id
-                ) {
-
-                    this.currentSubtitle =
-                        id;
-
-                    return (
-                        this.subtitleTracks[i]
-                    );
-                }
-            }
-
-
-            return null;
-        },
-
-
-        /*
-         * Сформировать информацию
-         * для интерфейса.
-         */
-
-        getSummary: function () {
-
-            return {
-
-                audioCount:
-                    this.audioTracks.length,
-
-                subtitleCount:
-                    this.subtitleTracks.length,
-
-                currentAudio:
-                    this.currentAudio,
-
-                currentSubtitle:
-                    this.currentSubtitle
-
-            };
-        },
-
-
-        /*
-         * Загрузка треков напрямую из API TorServe
-         */
-
-        loadFromTorServe: function (
+        loadTorrentData: function (
             torServeUrl,
             torrentHash,
-            fileIndex,
+            currentFileIndex,
             callback
         ) {
 
@@ -480,8 +164,47 @@
                             );
 
 
+                        /*
+                         * 1. Парсим плейлист (все медиа-файлы раздачи)
+                         */
+
+                        if (
+                            data.files &&
+                            data.files.length > 0
+                        ) {
+
+                            for (
+                                var f = 0;
+                                f < data.files.length;
+                                f++
+                            ) {
+                                
+                                var file = data.files[f];
+
+                                // Добавляем файл в список серий
+                                self.episodes.push({
+
+                                    index: f,
+
+                                    name: file.name,
+
+                                    size: file.size,
+
+                                    link: torServeUrl + file.link
+
+                                });
+                            }
+
+                            self.currentEpisodeIndex = currentFileIndex;
+                        }
+
+
+                        /*
+                         * 2. Достаем дорожки и субтитры для текущего файла
+                         */
+
                         var currentFile =
-                            data.files[fileIndex];
+                            data.files[currentFileIndex];
 
 
                         if (
@@ -501,18 +224,26 @@
 
                                 if (t.type === "audio") {
 
-                                    self.addAudioTrack(t);
+                                    self.audioTracks.push({
+                                        id: t.id !== undefined ? t.id : self.audioTracks.length,
+                                        title: t.title || "",
+                                        languageName: self.languageName(t.language)
+                                    });
 
                                 } else if (t.type === "subtitle") {
 
-                                    self.addSubtitleTrack(t);
+                                    self.subtitleTracks.push({
+                                        id: t.id !== undefined ? t.id : self.subtitleTracks.length,
+                                        title: t.title || "",
+                                        languageName: self.languageName(t.language)
+                                    });
                                 }
                             }
                         }
 
                     } catch (e) {
 
-                        console.error("TorServe tracks parse error:", e);
+                        console.error("TorServe data parse error:", e);
                     }
 
 
@@ -528,3 +259,157 @@
                 JSON.stringify({
                     hash: torrentHash
                 })
+            );
+        },
+
+
+        /*
+         * Отрисовка всего Мега-Меню
+         */
+
+        renderMegaMenu: function () {
+
+            var self = this;
+
+
+            /*
+             * 1. Рендерим горизонтальный ряд Озвучек
+             */
+
+            var audioContainer =
+                document.getElementById(
+                    "menuAudioTracks"
+                );
+
+
+            if (audioContainer) {
+
+                audioContainer.innerHTML = "";
+
+                for (
+                    var a = 0;
+                    a < self.audioTracks.length;
+                    a++
+                ) {
+
+                    (function (idx) {
+
+                        var track = self.audioTracks[idx];
+
+                        var btn = document.createElement("button");
+
+                        btn.type = "button";
+
+                        btn.className = "track-item";
+
+                        btn.setAttribute("tabindex", "0");
+
+                        btn.innerText =
+                            track.title ||
+                            track.languageName ||
+                            ("Озвучка " + (idx + 1));
+
+
+                        if (track.id === self.currentAudio) {
+
+                            btn.className += " active-track";
+                        }
+
+
+                        btn.onclick = function () {
+
+                            self.currentAudio = track.id;
+
+                            if (
+                                window.TorrentAVPlay &&
+                                typeof window.TorrentAVPlay.setAudioTrack === "function"
+                            ) {
+                                window.TorrentAVPlay.setAudioTrack(track.id);
+                            }
+
+                            self.renderMegaMenu();
+                        };
+
+                        audioContainer.appendChild(btn);
+
+                    })(a);
+                }
+            }
+
+
+            /*
+             * 2. Рендерим горизонтальный ряд Субтитров
+             */
+
+            var subContainer =
+                document.getElementById(
+                    "menuSubtitles"
+                );
+
+
+            if (subContainer) {
+
+                subContainer.innerHTML = "";
+
+                for (
+                    var s = 0;
+                    s < self.subtitleTracks.length;
+                    s++
+                ) {
+
+                    (function (idx) {
+
+                        var sub = self.subtitleTracks[idx];
+
+                        var btn = document.createElement("button");
+
+                        btn.type = "button";
+
+                        btn.className = "track-item";
+
+                        btn.setAttribute("tabindex", "0");
+
+                        btn.innerText =
+                            sub.title ||
+                            sub.languageName ||
+                            ("Субтитры " + (idx + 1));
+
+
+                        if (sub.id === self.currentSubtitle) {
+
+                            btn.className += " active-track";
+                        }
+
+
+                        btn.onclick = function () {
+
+                            self.currentSubtitle = sub.id;
+
+                            // Здесь будет вызов переключения сабов в AVPlay, когда дойдем до них
+                            console.log("Subtitles selected:", sub.id);
+
+                            self.renderMegaMenu();
+                        };
+
+                        subContainer.appendChild(btn);
+
+                    })(s);
+                }
+            }
+
+
+            /*
+             * 3. Рендерим правый боковой список Серий
+             */
+
+            var seriesContainer =
+                document.getElementById(
+                    "seriesListContainer"
+                );
+
+
+            if (seriesContainer) {
+
+                seriesContainer.innerHTML = "";
+
+                for (
