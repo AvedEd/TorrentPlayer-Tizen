@@ -1,51 +1,82 @@
-```xml
 <?xml version="1.0" encoding="UTF-8"?>
 
 <widget
     xmlns="http://www.w3.org/ns/widgets"
     xmlns:tizen="http://tizen.org/ns/widgets"
     id="http://torrentplayer.local"
-    version="0.1.0">
+    version="0.1.0"
+>
+
 
     <!-- Название приложения -->
-    <name>TorrentPlayer</name>
+
+    <name>
+        TorrentPlayer
+    </name>
+
 
     <description>
         TorrentPlayer - video player for Samsung Smart TV
     </description>
 
-    <!-- Точка входа -->
-    <content src="src/index.html" />
 
-    <!-- Иконка будет добавлена перед первой сборкой -->
-    <icon src="assets/icon.png" />
+    <!-- Точка входа в корень проекта -->
+
+    <content
+        src="index.html"
+    />
+
+
+    <!-- Иконка приложения -->
+
+    <icon
+        src="assets/icon.png"
+    />
 
 
     <!-- Tizen application -->
+
     <tizen:application
         id="TorrentPlayer.Tizen"
         package="TrntPlyr"
-        required_version="8.0" />
+        required_version="4.0"
+    />
 
 
     <!-- Интернет -->
+
     <tizen:privilege
-        name="http://tizen.org/privilege/internet" />
+        name="http://tizen.org/privilege/internet"
+    />
 
-    <!-- Управление TV input -->
+
+    <!-- Управление TV input (Пульт) -->
+
     <tizen:privilege
-        name="http://tizen.org/privilege/tv.inputdevice" />
+        name="http://tizen.org/privilege/tv.inputdevice"
+    />
 
 
-    <!-- Разрешаем сетевые подключения -->
+    <!-- Управление внутренним плеером Tizen AVPlay -->
+
+    <tizen:privilege
+        name="http://tizen.org"
+    />
+
+
+    <!-- Разрешаем сетевые подключения к любым серверам TorServe -->
+
     <access
         origin="*"
-        subdomains="true" />
+        subdomains="true"
+    />
 
 
     <!-- Приложение работает без мыши -->
+
     <tizen:setting
-        pointing-device-support="disable" />
+        pointing-device-support="disable"
+    />
+
 
 </widget>
-```
