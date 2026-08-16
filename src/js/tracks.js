@@ -1,4 +1,3 @@
-```javascript
 (function () {
     "use strict";
 
@@ -10,6 +9,7 @@
      * - аудиодорожками
      * - субтитрами
      * - выбором языка
+     * - интеграцией с TorServe API
      *
      * Важно:
      * фактические возможности зависят от потока
@@ -304,7 +304,6 @@
          * Автоматический выбор языка
          *
          * Приоритет:
-         *
          * 1. Русский
          * 2. Английский
          * 3. Первая дорожка
@@ -433,17 +432,99 @@
                     this.currentSubtitle
 
             };
-        }
-
-    };
+        },
 
 
-    /*
-     * Экспорт
-     */
+        /*
+         * Загрузка треков напрямую из API TorServe
+         */
 
-    window.TorrentTracks =
-        Tracks;
+        loadFromTorServe: function (
+            torServeUrl,
+            torrentHash,
+            fileIndex,
+            callback
+        ) {
 
-})();
-```
+            var self = this;
+
+            self.reset();
+
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open(
+                "POST",
+                torServeUrl + "/torrent/info",
+                true
+            );
+
+            xhr.setRequestHeader(
+                "Content-Type",
+                "application/json"
+            );
+
+
+            xhr.onreadystatechange = function () {
+
+                if (
+                    xhr.readyState === 4 &&
+                    xhr.status === 200
+                ) {
+
+                    try {
+
+                        var data =
+                            JSON.parse(
+                                xhr.responseText
+                            );
+
+
+                        var currentFile =
+                            data.files[fileIndex];
+
+
+                        if (
+                            currentFile &&
+                            currentFile.tracks
+                        ) {
+
+                            for (
+                                var i = 0;
+                                i < currentFile.tracks.length;
+                                i++
+                            ) {
+
+                                var t =
+                                    currentFile.tracks[i];
+
+
+                                if (t.type === "audio") {
+
+                                    self.addAudioTrack(t);
+
+                                } else if (t.type === "subtitle") {
+
+                                    self.addSubtitleTrack(t);
+                                }
+                            }
+                        }
+
+                    } catch (e) {
+
+                        console.error("TorServe tracks parse error:", e);
+                    }
+
+
+                    if (typeof callback === "function") {
+
+                        callback();
+                    }
+                }
+            };
+
+
+            xhr.send(
+                JSON.stringify({
+                    hash: torrentHash
+                })
