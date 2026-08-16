@@ -1,4 +1,3 @@
-```javascript
 (function () {
     "use strict";
 
@@ -107,6 +106,39 @@
 
 
                     /*
+                     * Если открыто меню аудиодорожек,
+                     * пульт должен управлять только им.
+                     */
+
+                    if (
+                        self.handleAudioMenuNavigation(
+                            keyCode,
+                            event
+                        )
+                    ) {
+                        return;
+                    }
+
+
+                    /*
+                     * Зеленая кнопка пульта
+                     * открывает меню звуковых дорожек.
+                     */
+
+                    if (
+                        keyCode ===
+                        self.KEY.GREEN
+                    ) {
+
+                        self.toggleAudioMenu();
+
+                        event.preventDefault();
+
+                        return;
+                    }
+
+
+                    /*
                      * Не позволяем браузеру
                      * обрабатывать стандартные
                      * действия клавиш.
@@ -139,6 +171,163 @@
             console.log(
                 "[Remote] initialized"
             );
+        },
+
+
+        /*
+         * Логика открытия и закрытия меню
+         */
+
+        toggleAudioMenu: function () {
+
+            var menu =
+                document.getElementById(
+                    "audioMenu"
+                );
+
+
+            if (!menu) {
+                return;
+            }
+
+
+            var isHidden =
+                menu.className.indexOf(
+                    "hidden"
+                ) !== -1;
+
+
+            if (isHidden) {
+
+                menu.className =
+                    "audio-menu-panel";
+
+
+                if (
+                    window.TorrentTracks &&
+                    typeof window.TorrentTracks.renderMenu === "function"
+                ) {
+
+                    window.TorrentTracks.renderMenu();
+                }
+
+            } else {
+
+                menu.className =
+                    "audio-menu-panel hidden";
+            }
+        },
+
+
+        /*
+         * Обработка навигации внутри меню аудиодорожек
+         */
+
+        handleAudioMenuNavigation: function (
+            keyCode,
+            event
+        ) {
+
+            var menu =
+                document.getElementById(
+                    "audioMenu"
+                );
+
+
+            if (
+                !menu ||
+                menu.className.indexOf("hidden") !== -1
+            ) {
+                return false;
+            }
+
+
+            /*
+             * Кнопка BACK закрывает меню
+             */
+
+            if (
+                keyCode === this.KEY.BACK
+            ) {
+
+                menu.className =
+                    "audio-menu-panel hidden";
+
+
+                event.preventDefault();
+
+                return true;
+            }
+
+
+            /*
+             * Навигация Вверх/Вниз
+             */
+
+            if (
+                keyCode === this.KEY.UP ||
+                keyCode === this.KEY.DOWN
+            ) {
+
+                var activeEl =
+                    document.activeElement;
+
+
+                if (
+                    activeEl &&
+                    activeEl.className.indexOf("track-item") !== -1
+                ) {
+
+                    var nextEl =
+                        keyCode === this.KEY.DOWN
+                            ? activeEl.nextElementSibling
+                            : activeEl.previousElementSibling;
+
+
+                    if (
+                        nextEl &&
+                        nextEl.className.indexOf("track-item") !== -1
+                    ) {
+
+                        nextEl.focus();
+                    }
+                }
+
+
+                event.preventDefault();
+
+                return true;
+            }
+
+
+            /*
+             * Кнопка ENTER активирует клик
+             */
+
+            if (
+                keyCode === this.KEY.ENTER
+            ) {
+
+                var focusedBtn =
+                    document.activeElement;
+
+
+                if (
+                    focusedBtn &&
+                    focusedBtn.className.indexOf("track-item") !== -1
+                ) {
+
+                    focusedBtn.click();
+                }
+
+
+                event.preventDefault();
+
+                return true;
+            }
+
+
+            return false;
         },
 
 
@@ -251,4 +440,3 @@
         Remote;
 
 })();
-```
