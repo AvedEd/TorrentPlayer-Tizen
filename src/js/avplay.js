@@ -1,4 +1,3 @@
-```javascript
 (function () {
     "use strict";
 
@@ -459,120 +458,49 @@
 
 
     /*
-     * Текущее время
+     * Физическое переключение аудиодорожки в Tizen
      */
 
-    AVPlayer.prototype.getCurrentTime =
-        function () {
+    AVPlayer.prototype.setAudioTrack = function (
+        id
+    ) {
 
-            try {
+        try {
 
-                return this.avplay
-                    .getCurrentTime();
+            if (this.avplay) {
 
-            } catch (error) {
-
-                return this.currentTime || 0;
-            }
-        };
-
-
-    /*
-     * Длительность
-     */
-
-    AVPlayer.prototype.getDuration =
-        function () {
-
-            try {
-
-                return this.avplay
-                    .getDuration();
-
-            } catch (error) {
-
-                return this.duration || 0;
-            }
-        };
-
-
-    /*
-     * Громкость
-     */
-
-    AVPlayer.prototype.setVolume =
-        function (volume) {
-
-            volume = Math.max(
-                0,
-                Math.min(
-                    100,
-                    volume
-                )
-            );
-
-            try {
-
-                this.avplay.setVolume(
-                    volume
+                this.avplay.setSelectTrack(
+                    "AUDIO",
+                    id
                 );
 
-                this.volume = volume;
+                console.log(
+                    "[AVPlay] audio track changed to:",
+                    id
+                );
 
                 return true;
-
-            } catch (error) {
-
-                console.error(
-                    "[AVPlay] volume error",
-                    error
-                );
-
-                return false;
             }
-        };
+
+        } catch (error) {
+
+            console.error(
+                "[AVPlay] set audio track error",
+                error
+            );
+        }
+
+        return false;
+    };
 
 
     /*
-     * Получить громкость
+     * Экспорт инстанса плеера глобально для интеграций
      */
 
-    AVPlayer.prototype.getVolume =
-        function () {
+    var playerInstance = new AVPlayer();
 
-            try {
-
-                return this.avplay
-                    .getVolume();
-
-            } catch (error) {
-
-                return this.volume;
-            }
-        };
-
-
-    /*
-     * Уничтожение
-     */
-
-    AVPlayer.prototype.destroy =
-        function () {
-
-            this.stop();
-
-            this.events = {};
-
-            this.url = null;
-        };
-
-
-    /*
-     * Экспорт
-     */
-
-    window.TorrentAVPlayer =
-        AVPlayer;
+    window.TorrentAVPlay =
+        playerInstance;
 
 })();
-```
